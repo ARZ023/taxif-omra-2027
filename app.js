@@ -394,8 +394,17 @@
       canvas.height = Math.round(W.size * W.dpr);
     }
 
+    const wantedCount = () => Math.min(state.pool.length, W.size < 420 ? 14 : (W.size > 900 ? 24 : 20));
+
+    /** Re-pick names only when the number of segments should change (e.g. rotation, TV). */
+    function relayout() {
+      if (W.spinning) return;
+      const want = state.pool.length ? wantedCount() : PLACEHOLDER.length;
+      if (want !== W.segs.length) resample();
+    }
+
     function resample() {
-      const n = Math.min(state.pool.length, window.innerWidth < 520 ? 14 : 20);
+      const n = wantedCount();
       W.hi = -1; W.last = -1;
       if (!n) { W.segs = PLACEHOLDER.map((label, i) => ({ id: -1 - i, label })); return; }
       W.segs = sample(state.pool, n).map(e => ({ id: e.id, label: e.label }));
@@ -522,7 +531,7 @@
     if (document.fonts && document.fonts.load) document.fonts.load('800 20px Cairo').catch(() => {});
 
     return {
-      resample,
+      resample, relayout,
       get spinning() { return W.spinning; },
       /** Spins and lands on `win`. */
       spin(win, onLanded) {
@@ -673,6 +682,7 @@
     recompute({ autoSelect: true });
     const n = state.pool.length;
     toast(`تم تحميل ${added} ملف · ${fmt(n)} كابتن مؤهل`);
+    setTimeout(ensureWheelVisible, 200);
   }
 
   function loadDemo() {
@@ -695,9 +705,33 @@
   /* ------------------------------------------------------------------ *
    *  Spin + celebration
    * ------------------------------------------------------------------ */
+  /** Scroll so the whole wheel + spin button is on screen (phones / short screens). */
+  function ensureWheelVisible() {
+    const r = el('stage').getBoundingClientRect();
+    const fits = r.height <= window.innerHeight;
+    if (r.top < 0 || r.bottom > window.innerHeight) {
+      window.scrollTo({ top: window.scrollY + r.top - (fits ? 12 : 0), behavior: 'smooth' });
+    }
+  }
+
+  /* keep the screen awake while presenting / drawing (TV, phone, tablet) */
+  let wakeLock = null;
+  async function keepAwake(on) {
+    try {
+      if (on && 'wakeLock' in navigator && !wakeLock) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+    } catch { /* not supported / denied: ignore */ }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && document.body.classList.contains('present')) keepAwake(true);
+  });
+
   function startSpin() {
     if (state.busy || !state.pool.length) return;
     sound.unlock();
+    ensureWheelVisible();
     const win = state.pool[randInt(state.pool.length)];
     state.busy = true;
     renderStatus();
@@ -735,12 +769,14 @@
     el('winNum').textContent = `الفائز رقم ${w.n}`;
     el('winId').textContent = maskId(w.row.data[state.keyCol]);
     el('winModal').hidden = false;
+    document.body.classList.add('modal-open');
     celebrate();
     el('nextBtn').focus({ preventScroll: true });
   }
 
   function closeWinner(thenSpin) {
     el('winModal').hidden = true;
+    document.body.classList.remove('modal-open');
     wheel.clearHighlight();
     wheel.resample();
     state.busy = false;
@@ -827,14 +863,42 @@
   window.addEventListener('keydown', e => {
     const modalOpen = !el('winModal').hidden;
     if (e.key === 'Escape' && modalOpen) closeWinner(false);
+    else if (e.key === 'Escape' && document.body.classList.contains('present')) setPresent(false);
+    if ((e.key === 'f' || e.key === 'F') && !modalOpen && !/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName)) setPresent(!document.body.classList.contains('present'));
     if (e.code === 'Space' && !/^(INPUT|SELECT|TEXTAREA|BUTTON|SUMMARY)$/.test(document.activeElement.tagName)) {
       e.preventDefault();
       modalOpen ? closeWinner(true) : startSpin();
     }
   });
 
+  // presentation mode (projector / TV): wheel only, fullscreen where supported
+  const presentBtn = el('presentBtn');
+  function setPresent(on) {
+    document.body.classList.toggle('present', on);
+    presentBtn.setAttribute('aria-pressed', String(on));
+    keepAwake(on);
+    const root = document.documentElement;
+    try {
+      if (on) {
+        const req = root.requestFullscreen || root.webkitRequestFullscreen;
+        if (req && !(document.fullscreenElement || document.webkitFullscreenElement)) { const p = req.call(root); p && p.catch && p.catch(() => {}); }
+      } else {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exit && (document.fullscreenElement || document.webkitFullscreenElement)) { const p = exit.call(document); p && p.catch && p.catch(() => {}); }
+      }
+    } catch { /* fullscreen not available (e.g. iPhone): layout still switches */ }
+    window.scrollTo(0, 0);
+    setTimeout(() => wheel.relayout(), 250);
+  }
+  presentBtn.addEventListener('click', () => setPresent(!document.body.classList.contains('present')));
+  const onFsChange = () => { if (!(document.fullscreenElement || document.webkitFullscreenElement) && document.body.classList.contains('present')) setPresent(false); };
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+
   let rsz;
-  window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (!wheel.spinning) wheel.resample(); }, 250); });
+  const onResize = () => { clearTimeout(rsz); rsz = setTimeout(() => wheel.relayout(), 250); };
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', onResize);
 
   renderAll();
 

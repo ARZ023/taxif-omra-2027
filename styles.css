@@ -55,8 +55,8 @@ button { cursor: pointer; }
   transition: background .2s, transform .2s;
 }
 .icon-btn:hover { background: rgba(255, 255, 255, .1); }
-.icon-btn[aria-pressed="false"] { color: var(--muted); }
-.icon-btn[aria-pressed="false"]::after {
+#soundBtn[aria-pressed="false"] { color: var(--muted); }
+#soundBtn[aria-pressed="false"]::after {
   content: ""; position: absolute; width: 26px; height: 2px; background: var(--danger); transform: rotate(-45deg);
 }
 .icon-btn { position: relative; }
@@ -317,3 +317,103 @@ body.dragging .drop-overlay > div { transform: scale(1); }
 @media (prefers-reduced-motion: reduce) {
   .wheel-wrap::before, .eyebrow i, h1 em, .rays, .kaaba, .hub.ready::after { animation: none; }
 }
+
+/* =====================================================================
+   Responsive / platform polish: phone, tablet, iPad, desktop, TV
+   ===================================================================== */
+html { scroll-behavior: smooth; font-size: 16px; }
+html, body { overflow-x: clip; }
+body {
+  min-height: 100vh; min-height: 100dvh;
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+button, .chip, .empty-card, summary { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+body.modal-open { overflow: hidden; }
+.top-actions { display: flex; gap: 10px; }
+.icon-btn { width: 46px; height: 46px; }
+.btn, .chip { min-height: 40px; }
+
+.top, main { max-width: 80rem; }
+.layout { grid-template-columns: minmax(0, 1fr) 24.5rem; }
+.brand img { height: 2.5rem; }
+
+/* the wheel always fits the screen height, so wheel + button stay visible */
+.stage { position: sticky; top: 12px; gap: 16px; }
+.wheel-wrap { width: min(100%, 41rem, max(18rem, calc(100vh - 15rem)), max(18rem, calc(100dvh - 15rem))); }
+
+.modal { overflow-y: auto; overscroll-behavior: contain; }
+.win-card { margin: auto; }
+
+/* ---- laptop / desktop: long panels scroll inside themselves ---- */
+@media (min-width: 1021px) {
+  .winners { max-height: 38dvh; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: 4px; }
+  #rules { max-height: 46dvh; overflow-y: auto; overscroll-behavior: contain; padding-inline-end: 4px; }
+}
+
+/* ---- tablet / iPad portrait ---- */
+@media (max-width: 1020px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .stage { position: static; }
+  .wheel-wrap { width: min(100%, 38rem); }
+  .side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  #winnersCard { grid-column: 1 / -1; }
+}
+
+/* ---- phone ---- */
+@media (max-width: 640px) {
+  .side { grid-template-columns: 1fr; }
+  .top { padding: 12px 16px; }
+  .brand { padding: 6px 14px; border-radius: 14px; }
+  .brand img { height: 2rem; }
+  .hero { padding-bottom: 14px; }
+  .spin-btn { width: 100%; font-size: 1.2rem; padding: 14px 20px; }
+  .card { padding: 16px; }
+  .win-body { padding: 26px 16px 22px; }
+  .win-actions .btn { flex: 1; }
+}
+
+/* ---- landscape phone / short screens ---- */
+@media (max-height: 520px) and (orientation: landscape) {
+  .top { padding-block: 6px; }
+  .brand img { height: 1.6rem; }
+  .brand { padding: 4px 12px; }
+  .hero { display: none; }
+  .layout { grid-template-columns: minmax(0, 1fr) 19rem; gap: 16px; }
+  .stage { position: sticky; top: 6px; gap: 8px; }
+  .wheel-wrap { width: min(100%, calc(100vh - 7.5rem), calc(100dvh - 7.5rem)); min-width: 180px; }
+  .stats { display: none; }
+  .spin-btn { padding: 8px 24px; font-size: 1.05rem; min-width: 0; }
+  .side { display: flex; }
+  .winners, #rules { max-height: none; }
+  .win-body { padding: 14px 16px; }
+  .kaaba { font-size: 2rem; }
+  .win-body { padding: 10px 16px 12px; }
+  .win-body h2 { font-size: 1.8rem; margin: 0; }
+  .win-sub { font-size: .95rem; margin-bottom: 4px; }
+  .win-name { font-size: 1.5rem; padding: 4px 18px; margin: 2px 0 6px; }
+  .win-actions { margin-top: 8px; }
+  .win-actions .btn { padding: 8px 18px; font-size: .95rem; }
+}
+
+/* ---- large screens / TV ---- */
+@media (min-width: 1600px) { html { font-size: 19px; } }
+@media (min-width: 1920px) { html { font-size: 22px; } }
+@media (min-width: 2560px) { html { font-size: 30px; } }
+@media (min-width: 3200px) { html { font-size: 40px; } }
+
+/* ---- presentation mode (projector / TV): wheel only, no scrolling ---- */
+body.present { overflow: hidden; height: 100vh; height: 100dvh; }
+body.present .top { padding-block: 8px; }
+body.present .eyebrow, body.present .hero p, body.present .side, body.present .foot, body.present #stats li:nth-child(2) { display: none; }
+body.present .hero { padding: 0 0 6px; }
+body.present h1 { font-size: clamp(1.8rem, 5dvh, 3.2rem); margin: 0; }
+body.present main { padding-bottom: 8px; }
+body.present .layout { grid-template-columns: 1fr; }
+body.present .stage { position: static; gap: 12px; }
+body.present .wheel-wrap { width: min(100%, calc(100vh - 17rem), calc(100dvh - 17rem)); }
+body.present .stats li { padding: 6px 16px; }
+body.present .stats b { font-size: 1.3rem; }
+body.present .spin-btn { padding: 12px 40px; }
+body.present .icon-btn[aria-pressed="true"] { background: var(--yellow); color: var(--ink); }
