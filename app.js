@@ -1,4 +1,4 @@
-/* TaxiF · Omra 2027 prize draw
+/* TaxiF · Omra 2026 prize draw
  * Everything runs in the browser. Files are never uploaded anywhere.
  */
 (() => {
@@ -381,7 +381,7 @@
     const W = { size: 0, dpr: 1, theta: 0, segs: [], anim: null, last: -1, kick: 0, hi: -1, spinning: false, t: 0 };
     const FONT = '"Cairo","Segoe UI",system-ui,sans-serif';
     const Y = '#f9b816', K = '#121213', WH = '#ffffff';
-    const PLACEHOLDER = ['TaxiF', 'عمرة 2027', 'TaxiF', '🕋', 'TaxiF', 'عمرة 2027', 'TaxiF', '🕋', 'TaxiF', 'عمرة 2027', 'TaxiF', '🕋'];
+    const PLACEHOLDER = ['TaxiF', 'عمرة 2026', 'TaxiF', '🕋', 'TaxiF', 'عمرة 2026', 'TaxiF', '🕋', 'TaxiF', 'عمرة 2026', 'TaxiF', '🕋'];
 
     const segColor = (i, n) => (n % 2 === 1 && i === n - 1) ? WH : (i % 2 === 0 ? Y : K);
     const textColor = bg => bg === K ? Y : K;
@@ -794,7 +794,7 @@
     const wb = XLSX.utils.book_new();
     wb.Workbook = { Views: [{ RTL: true }] };
     XLSX.utils.book_append_sheet(wb, ws, 'الفائزون');
-    XLSX.writeFile(wb, 'taxif-omra-2027-winners.xlsx');
+    XLSX.writeFile(wb, 'taxif-omra-2026-winners.xlsx');
   }
 
   /* ------------------------------------------------------------------ *
