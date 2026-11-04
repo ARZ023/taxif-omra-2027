@@ -1,0 +1,7 @@
+# Never commit captain data
+*.xlsx
+*.xls
+*.csv
+*.json
+.claude/
+.DS_Store

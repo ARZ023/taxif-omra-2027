@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>سحب العمرة 2027 | TaxiF</title>
+  <meta name="description" content="سحب جائزة العمرة 2027 المقدّمة من TaxiF للكباتن المرخّصين والمحرّرين فقط.">
+  <meta name="theme-color" content="#0b0b0c">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="top">
+    <a class="brand" href="./" aria-label="TaxiF">
+      <img src="assets/logo.png" alt="TaxiF" width="495" height="190">
+    </a>
+    <div class="top-actions">
+      <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" title="الصوت">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+        <span class="sr">الصوت</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <span class="eyebrow"><i></i> هدية من TaxiF</span>
+      <h1>سحب <em>العمرة</em> <span class="year">2027</span></h1>
+      <p>للكباتن <b>المرخّصين</b> و<b>المحرّرين</b> فقط</p>
+    </section>
+
+    <div class="layout">
+      <!-- ============ Wheel ============ -->
+      <section class="stage" id="stage" aria-label="عجلة السحب">
+        <div class="wheel-wrap" id="wheelWrap">
+          <canvas id="wheel" aria-hidden="true"></canvas>
+          <button class="hub" id="hub" type="button" aria-label="ابدأ السحب">لفّ</button>
+
+          <div class="empty" id="empty">
+            <div class="empty-card" id="dropZone" tabindex="0" role="button" aria-label="اختيار الملفات">
+              <div class="empty-icons" aria-hidden="true">
+                <span>JSON</span><span>XLSX</span>
+              </div>
+              <h2>أفلت الملفين هنا</h2>
+              <p>اسحب ملف <b>JSON</b> وملف <b>Excel</b> وأفلتهما على العجلة</p>
+              <div class="empty-actions">
+                <button class="btn primary" id="pickBtn" type="button">اختيار الملفات</button>
+                <button class="btn ghost" id="demoBtn" type="button">تجربة بأسماء تجريبية</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="spin-btn" id="spinBtn" type="button" disabled>
+          <span class="spin-label">حمّل الملفات أولاً</span>
+        </button>
+
+        <ul class="stats" id="stats" aria-live="polite">
+          <li><b id="statEligible">0</b><span>مؤهل للسحب</span></li>
+          <li><b id="statTotal">0</b><span>إجمالي السجلات</span></li>
+          <li><b id="statWinners">0</b><span>الفائزون</span></li>
+        </ul>
+      </section>
+
+      <!-- ============ Side panel ============ -->
+      <aside class="side">
+        <section class="card" id="filesCard">
+          <header class="card-h">
+            <h3>الملفات</h3>
+            <button class="link" id="addBtn" type="button">+ إضافة ملف</button>
+          </header>
+          <ul class="files" id="fileList"></ul>
+          <p class="muted small" id="joinInfo" hidden></p>
+          <p class="muted small" id="filesEmpty">لم يتم تحميل أي ملف بعد.</p>
+          <p class="privacy small">🔒 الملفات تُقرأ داخل متصفحك فقط ولا تُرفع لأي مكان.</p>
+        </section>
+
+        <section class="card" id="rulesCard" hidden>
+          <header class="card-h">
+            <h3>شروط الأهلية</h3>
+            <span class="pill" id="rulesCount"></span>
+          </header>
+          <p class="muted small" id="rulesHint">اختر القيم المسموحة في كل عمود. الكابتن المؤهل يجب أن يحقق جميع الشروط المحدّدة.</p>
+          <div class="notice" id="rulesNotice" hidden>
+            لم أتعرّف تلقائياً على عمودَي «مرخّص» و«محرّر». اختر القيم المؤهلة من الأعمدة أدناه.
+          </div>
+          <div id="rules"></div>
+          <details class="cols">
+            <summary>إعدادات الأعمدة</summary>
+            <label>عمود الاسم <select id="nameSel"></select></label>
+            <label>عمود الرقم / الهوية (للتمييز) <select id="keySel"></select></label>
+          </details>
+        </section>
+
+        <section class="card" id="winnersCard">
+          <header class="card-h">
+            <h3>الفائزون</h3>
+            <button class="link" id="exportBtn" type="button" disabled>تصدير Excel</button>
+          </header>
+          <ol class="winners" id="winnerList"></ol>
+          <p class="muted small" id="winnersEmpty">لم يُسحب أي فائز بعد.</p>
+          <button class="link danger" id="resetWinners" type="button" hidden>تصفير الفائزين</button>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="foot">TaxiF · سحب العمرة 2027</footer>
+
+  <input type="file" id="fileInput" accept=".json,.xlsx,.xls,.xlsm,.csv,.tsv,.ods" multiple hidden>
+
+  <!-- global drag overlay -->
+  <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+    <div><strong>أفلت الملفات هنا</strong><span>JSON · Excel · CSV</span></div>
+  </div>
+
+  <!-- winner modal -->
+  <div class="modal" id="winModal" role="dialog" aria-modal="true" aria-labelledby="winTitle" hidden>
+    <div class="win-card">
+      <div class="rays" aria-hidden="true"></div>
+      <div class="win-body">
+        <div class="kaaba" aria-hidden="true">🕋</div>
+        <h2 id="winTitle">مبروك!</h2>
+        <p class="win-sub">الفائز بجائزة <b>العمرة 2027</b> من TaxiF</p>
+        <div class="win-name" id="winName"></div>
+        <div class="win-meta">
+          <span id="winNum"></span>
+          <span id="winId" dir="ltr"></span>
+        </div>
+        <div class="win-actions">
+          <button class="btn primary" id="nextBtn" type="button">سحب فائز آخر</button>
+          <button class="btn ghost" id="closeBtn" type="button">إغلاق</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/xlsx.full.min.js"></script>
+  <script src="vendor/confetti.browser.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
